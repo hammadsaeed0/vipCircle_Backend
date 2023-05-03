@@ -1,11 +1,30 @@
-const express = require('express');
-
+import express from "express";
+import { connectDB } from "./config/database.js";
 const app = express();
+import { APP_PORT } from "./config/index.js";
+import router from "./routes/userRoutes.js";
+import ErrorMiddleware from "./middleware/Error.js";
+import fileupload from "express-fileupload";
 
-app.get('/', (req, res) => {
-  res.send('Hello, world!');
+connectDB();
+
+// Use Middlewares
+app.use(express.json());
+app.use(
+  express.urlencoded({
+    extended: true,
+  })
+);
+app.use(
+  fileupload({
+    useTempFiles: true,
+  })
+);
+// Import User Routes
+app.use("/api", router);
+
+app.listen(APP_PORT, () => {
+  console.log(` app  on port ${APP_PORT}`);
 });
 
-app.listen(3000, () => {
-  console.log('Server started on port 3000');
-});
+app.use(ErrorMiddleware);
