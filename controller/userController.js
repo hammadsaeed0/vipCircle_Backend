@@ -155,16 +155,15 @@ export const LikeProfile = catchAsyncError(async (req, res, next) => {
   if (user.liked.includes(likedUserId))
     return res.status(404).json({ message: "User already liked this profile" });
     const isMatched = likedUser.liked.includes(id);
-    console.log(likedUserId);
   user.liked.push(likedUserId);
   await user.save();
   if (isMatched) {
-    user.isMatched.push(likedUserId);
-    console.log(likedUserId);
-    likedUser.isMatched.push(id);e
-    console.log(id);
-    await user.save();
-    await likedUser.save();
+  //   user.isMatched.push(likedUserId);
+  //   console.log(likedUserId);
+  //   likedUser.isMatched.push(id);e
+  //   console.log(id);
+  //   await user.save();
+  //   await likedUser.save();
     return res.status(200).json({
       success: true,
       message: "Match found",
