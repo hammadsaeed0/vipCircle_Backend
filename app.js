@@ -5,11 +5,13 @@ import { APP_PORT } from "./config/index.js";
 import router from "./routes/userRoutes.js";
 import ErrorMiddleware from "./middleware/Error.js";
 import fileupload from "express-fileupload";
+import cors from 'cors';
 
 connectDB();
 
 // Use Middlewares
 app.use(express.json());
+app.use(cors());
 app.use(
   express.urlencoded({
     extended: true,
