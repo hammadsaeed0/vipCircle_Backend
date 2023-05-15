@@ -1,5 +1,5 @@
 import express from "express";
-import { AddPhoneNumber, AddProfileDetail, WhoIam, Interests, PersonlDetail, Hobbies, LikeProfile, LikedProfile } from "../controller/userController.js";
+import { AddPhoneNumber, AddProfileDetail, WhoIam, Interests, PersonlDetail, Hobbies, LikeProfile, LikedProfile, DeleteProfile } from "../controller/userController.js";
 
 const router = express.Router();
 
@@ -11,5 +11,6 @@ router.route("/PersonlDetail/:id").post(PersonlDetail);
 router.route("/Hobbies/:id").post(Hobbies);
 router.route("/LikeProfile/:id").post(LikeProfile);
 router.route("/LikedProfile/:id").post(LikedProfile);
+router.route("/DeleteProfile/:id").post(DeleteProfile);
 
 export default router;

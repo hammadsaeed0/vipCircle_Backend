@@ -195,4 +195,16 @@ export const LikedProfile = catchAsyncError(async (req, res, next) => {
   });
 });
 
+// Delete  Profile
+export const DeleteProfile = catchAsyncError(async (req, res, next) => {
+  const { id } = req.params;
+  const user = await User.findById(id);
+  if (!user) return res.status(404).json({ message: "User not found" });
+  const deletedProfile = await User.findByIdAndDelete(id);
+  res.status(200).json({
+    success: true,
+    data: deletedProfile,
+    message: "User Delete Successfully"
+  });
+});
 
