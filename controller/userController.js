@@ -23,14 +23,86 @@ export const AddPhoneNumber = catchAsyncError(async (req, res, next) => {
 });
 
 // Add User Basic Profile Data
+// export const AddProfileDetail = catchAsyncError(async (req, res, next) => {
+//   const { id } = req.params;
+//   const user = await User.findById(id);
+//   if (!user) return res.status(404).json({ message: "User not found" });
+//   const { name, dateOfBirth } = req.body;
+//   let images = [];
+//   let video = null;
+//   // const video = req.files.video;
+//   if (req.files && req.files.gallery) {
+//     if (!Array.isArray(req.files.gallery)) {
+//       images.push(req.files.gallery);
+//     } else {
+//       images = req.files.gallery;
+//     }
+//   }
+
+//   if (req.files && req.files.video) {
+//     video = req.files.video;
+//   }
+
+//   for (const image of images) {
+//     try {
+//       const result = await cloudinary.v2.uploader.upload(image.tempFilePath);
+//       user.gallery.push({
+//         publicId: result.public_id,
+//         url: result.url,
+//         type: "image", 
+//       });
+//     } catch (error) {
+//       console.log(error);
+//       return res.status(500).json({ error: "Error uploading images" });
+//     }
+//   }
+
+//   if (video) {
+//     try {
+//       const videoResult = await cloudinary.v2.uploader.upload(video.tempFilePath, {
+//         resource_type: "video",
+//       });
+//       user.gallery.push({
+//         publicId: videoResult.public_id,
+//         url: videoResult.url,
+//         type: "video", // Set the type as "video"
+//       });
+//     } catch (error) {
+//       console.log(error);
+//       return res.status(500).json({ error: "Error uploading video" });
+//     }
+//   }
+
+//   if (name) {
+//     user.name = name;
+//   }
+
+//   if (dateOfBirth) {
+//     user.dateOfBirth = dateOfBirth;
+//   }
+
+//   try {
+//     const updatedUser = await user.save();
+//     res.status(200).json({
+//       success: true,
+//       data: {
+//         _id: updatedUser._id,
+//         name: updatedUser.name,
+//         dateOfBirth: updatedUser.dateOfBirth,
+//         gallery: updatedUser.gallery,
+//       },
+//     });
+//   } catch (error) {
+//     console.log(error);
+//     res.status(500).json({ error: "Error updating user profile" });
+//   }
+// });
 export const AddProfileDetail = catchAsyncError(async (req, res, next) => {
   const { id } = req.params;
   const user = await User.findById(id);
   if (!user) return res.status(404).json({ message: "User not found" });
   const { name, dateOfBirth } = req.body;
   let images = [];
-  let video = null;
-  // const video = req.files.video;
   if (req.files && req.files.gallery) {
     if (!Array.isArray(req.files.gallery)) {
       images.push(req.files.gallery);
@@ -39,37 +111,16 @@ export const AddProfileDetail = catchAsyncError(async (req, res, next) => {
     }
   }
 
-  if (req.files && req.files.video) {
-    video = req.files.video;
-  }
-
   for (const image of images) {
     try {
       const result = await cloudinary.v2.uploader.upload(image.tempFilePath);
       user.gallery.push({
         publicId: result.public_id,
         url: result.url,
-        type: "image", 
       });
     } catch (error) {
       console.log(error);
       return res.status(500).json({ error: "Error uploading images" });
-    }
-  }
-
-  if (video) {
-    try {
-      const videoResult = await cloudinary.v2.uploader.upload(video.tempFilePath, {
-        resource_type: "video",
-      });
-      user.gallery.push({
-        publicId: videoResult.public_id,
-        url: videoResult.url,
-        type: "video", // Set the type as "video"
-      });
-    } catch (error) {
-      console.log(error);
-      return res.status(500).json({ error: "Error uploading video" });
     }
   }
 
@@ -85,18 +136,13 @@ export const AddProfileDetail = catchAsyncError(async (req, res, next) => {
     const updatedUser = await user.save();
     res.status(200).json({
       success: true,
-      data: {
-        _id: updatedUser._id,
-        name: updatedUser.name,
-        dateOfBirth: updatedUser.dateOfBirth,
-        gallery: updatedUser.gallery,
-      },
+      data: updatedUser,
     });
   } catch (error) {
     console.log(error);
     res.status(500).json({ error: "Error updating user profile" });
   }
-});
+}); 
 
 // Add User Related Data
 export const WhoIam = catchAsyncError(async (req, res, next) => {
