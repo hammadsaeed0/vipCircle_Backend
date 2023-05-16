@@ -3,6 +3,10 @@ import { User } from "../model/User.js";
 import ErrorHandler from "../utils/errorHandler.js";
 import { sendToken } from "../utils/sendToken.js";
 import cloudinary from "cloudinary";
+import multer from "multer";
+const upload = multer({ dest: "uploads/" });
+
+export const uploadVideos = upload.single("video");
 
 cloudinary.v2.config({
   cloud_name: "ddu4sybue",
@@ -23,115 +27,20 @@ export const AddPhoneNumber = catchAsyncError(async (req, res, next) => {
 });
 
 // Add User Basic Profile Data
-// export const AddProfileDetail = catchAsyncError(async (req, res, next) => {
-//   const { id } = req.params;
-//   const user = await User.findById(id);
-//   if (!user) return res.status(404).json({ message: "User not found" });
-//   const { name, dateOfBirth } = req.body;
-//   let images = [];
-//   let video = null;
-//   // const video = req.files.video;
-//   if (req.files && req.files.gallery) {
-//     if (!Array.isArray(req.files.gallery)) {
-//       images.push(req.files.gallery);
-//     } else {
-//       images = req.files.gallery;
-//     }
-//   }
-
-//   if (req.files && req.files.video) {
-//     video = req.files.video;
-//   }
-
-//   for (const image of images) {
-//     try {
-//       const result = await cloudinary.v2.uploader.upload(image.tempFilePath);
-//       user.gallery.push({
-//         publicId: result.public_id,
-//         url: result.url,
-//         type: "image", 
-//       });
-//     } catch (error) {
-//       console.log(error);
-//       return res.status(500).json({ error: "Error uploading images" });
-//     }
-//   }
-
-//   if (video) {
-//     try {
-//       const videoResult = await cloudinary.v2.uploader.upload(video.tempFilePath, {
-//         resource_type: "video",
-//       });
-//       user.gallery.push({
-//         publicId: videoResult.public_id,
-//         url: videoResult.url,
-//         type: "video", // Set the type as "video"
-//       });
-//     } catch (error) {
-//       console.log(error);
-//       return res.status(500).json({ error: "Error uploading video" });
-//     }
-//   }
-
-//   if (name) {
-//     user.name = name;
-//   }
-
-//   if (dateOfBirth) {
-//     user.dateOfBirth = dateOfBirth;
-//   }
-
-//   try {
-//     const updatedUser = await user.save();
-//     res.status(200).json({
-//       success: true,
-//       data: {
-//         _id: updatedUser._id,
-//         name: updatedUser.name,
-//         dateOfBirth: updatedUser.dateOfBirth,
-//         gallery: updatedUser.gallery,
-//       },
-//     });
-//   } catch (error) {
-//     console.log(error);
-//     res.status(500).json({ error: "Error updating user profile" });
-//   }
-// });
 export const AddProfileDetail = catchAsyncError(async (req, res, next) => {
   const { id } = req.params;
   const user = await User.findById(id);
   if (!user) return res.status(404).json({ message: "User not found" });
   const { name, dateOfBirth } = req.body;
-  let images = [];
-  if (req.files && req.files.gallery) {
-    if (!Array.isArray(req.files.gallery)) {
-      images.push(req.files.gallery);
-    } else {
-      images = req.files.gallery;
-    }
+  if (!name) {
+    return res.status(404).json({ message: "Enter the Name" });
   }
 
-  for (const image of images) {
-    try {
-      const result = await cloudinary.v2.uploader.upload(image.tempFilePath);
-      user.gallery.push({
-        publicId: result.public_id,
-        url: result.url,
-      });
-    } catch (error) {
-      console.log(error);
-      return res.status(500).json({ error: "Error uploading images" });
-    }
+  if (!dateOfBirth) {
+    return res.status(404).json({ message: "Enter date of Birth" });
   }
-
-  if (name) {
-    user.name = name;
-  }
-
-  if (dateOfBirth) {
-    user.dateOfBirth = dateOfBirth;
-  }
-
+  user.dateOfBirth = dateOfBirth;
+  user.name = name;
   try {
     const updatedUser = await user.save();
     res.status(200).json({
@@ -142,7 +51,78 @@ export const AddProfileDetail = catchAsyncError(async (req, res, next) => {
     console.log(error);
     res.status(500).json({ error: "Error updating user profile" });
   }
-}); 
+});
+// Add User Images
+export const uploadImage = async (req, res, next) => {
+  const { id } = req.params;
+  const user = await User.findById(id);
+  if (!user) return res.status(404).json({ message: "User not found" });
+  let images = [];
+  if (req.files && req.files.avatars) {
+    if (!Array.isArray(req.files.avatars)) {
+      images.push(req.files.avatars);
+    } else {
+      images = req.files.avatars;
+    }
+  }
+  for (const image of images) {
+    try {
+      const result = await cloudinary.v2.uploader.upload(image.tempFilePath);
+      user.gallery.push({
+        publicId: result.public_id,
+        url: result.url,
+        type: "image",
+      });
+    } catch (error) {
+      console.log(error);
+      return res.status(500).json({ error: "Error uploading images" });
+    }
+  }
+  try {
+    const updatedUser = await user.save();
+    res.status(200).json({
+      success: true,
+      data: updatedUser,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: "Error updating user profile" });
+  }
+};
+// Add User Video
+export const uploadVideo = async (req, res, next) => {
+  const { id } = req.params;
+  const user = await User.findById(id);
+  if (!user) return res.status(404).json({ message: "User not found" });
+
+  if (!req.files || !req.files.video) {
+    return res.status(400).json({ error: "No video file provided" });
+  }
+
+  try {
+    const videoFile = req.files.video;
+    const result = await cloudinary.v2.uploader.upload(videoFile.tempFilePath, {
+      resource_type: "video",
+    });
+    user.gallery.push({
+      publicId: result.public_id,
+      url: result.url,
+      type: "video",
+    });
+  } catch (error) {
+    return res.status(500).json({ error: "Error uploading video" });
+  }
+  try {
+    const updatedUser = await user.save();
+    res.status(200).json({
+      success: true,
+      data: updatedUser,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: "Error updating user profile" });
+  }
+};
 
 // Add User Related Data
 export const WhoIam = catchAsyncError(async (req, res, next) => {
@@ -228,29 +208,28 @@ export const LikeProfile = catchAsyncError(async (req, res, next) => {
     return res.status(404).json({ message: "Liked user not found" });
   if (user.liked.includes(likedUserId))
     return res.status(404).json({ message: "User already liked this profile" });
-    const isMatched = likedUser.liked.includes(id);
+  const isMatched = likedUser.liked.includes(id);
   user.liked.push(likedUserId);
   await user.save();
   if (isMatched) {
-  //   user.isMatched.push(likedUserId);
-  //   console.log(likedUserId);
-  //   likedUser.isMatched.push(id);e
-  //   console.log(id);
-  //   await user.save();
-  //   await likedUser.save();
+    //   user.isMatched.push(likedUserId);
+    //   console.log(likedUserId);
+    //   likedUser.isMatched.push(id);e
+    //   console.log(id);
+    //   await user.save();
+    //   await likedUser.save();
     return res.status(200).json({
       success: true,
       message: "Match found",
       data: { match: likedUserId },
     });
-  }else{
+  } else {
     return res.status(200).json({
       success: true,
       message: "User liked successfully",
       data: { likedUser: likedUserId },
     });
-  } 
-  
+  }
 });
 
 // All Liked Profile
@@ -262,7 +241,7 @@ export const LikedProfile = catchAsyncError(async (req, res, next) => {
     return res.status(404).json({ message: "No likes found" });
   }
   const likedIds = user.liked;
-  const profiles = await Promise.all(likedIds.map(id => User.findById(id)));
+  const profiles = await Promise.all(likedIds.map((id) => User.findById(id)));
   res.status(200).json({
     success: true,
     data: profiles,
@@ -278,7 +257,6 @@ export const DeleteProfile = catchAsyncError(async (req, res, next) => {
   res.status(200).json({
     success: true,
     data: deletedProfile,
-    message: "User Delete Successfully"
+    message: "User Delete Successfully",
   });
 });
-
