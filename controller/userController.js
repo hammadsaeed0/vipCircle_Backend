@@ -54,9 +54,6 @@ export const AddProfileDetail = catchAsyncError(async (req, res, next) => {
 });
 // Add User Images
 export const uploadImage = async (req, res, next) => {
-  const { id } = req.params;
-  const user = await User.findById(id);
-  if (!user) return res.status(404).json({ message: "User not found" });
   let images = [];
   if (req.files && req.files.avatars) {
     if (!Array.isArray(req.files.avatars)) {
@@ -65,29 +62,27 @@ export const uploadImage = async (req, res, next) => {
       images = req.files.avatars;
     }
   }
+  let responce = []
   for (const image of images) {
     try {
       const result = await cloudinary.v2.uploader.upload(image.tempFilePath);
-      user.gallery.push({
-        publicId: result.public_id,
-        url: result.url,
-        type: "image",
-      });
+       const publidId = result.public_id
+      const url = result.url
+      let data = {
+        publidId,
+        url
+      }
+    //  console.log(data);
+    responce.push(data)
     } catch (error) {
       console.log(error);
       return res.status(500).json({ error: "Error uploading images" });
     }
+
   }
-  try {
-    const updatedUser = await user.save();
-    res.status(200).json({
-      success: true,
-      data: updatedUser,
-    });
-  } catch (error) {
-    console.log(error);
-    res.status(500).json({ error: "Error updating user profile" });
-  }
+    // console.log("-->1",responce);
+    res.send(responce)
+
 };
 // Add User Video
 export const uploadVideo = async (req, res, next) => {
