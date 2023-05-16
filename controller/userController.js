@@ -86,10 +86,6 @@ export const uploadImage = async (req, res, next) => {
 };
 // Add User Video
 export const uploadVideo = async (req, res, next) => {
-  const { id } = req.params;
-  const user = await User.findById(id);
-  if (!user) return res.status(404).json({ message: "User not found" });
-
   if (!req.files || !req.files.video) {
     return res.status(400).json({ error: "No video file provided" });
   }
@@ -99,23 +95,15 @@ export const uploadVideo = async (req, res, next) => {
     const result = await cloudinary.v2.uploader.upload(videoFile.tempFilePath, {
       resource_type: "video",
     });
-    user.gallery.push({
-      publicId: result.public_id,
-      url: result.url,
-      type: "video",
-    });
+    const publidId = result.public_id
+    const url = result.url
+    let data = {
+      publidId,
+      url
+    }
+    res.send(data)
   } catch (error) {
     return res.status(500).json({ error: "Error uploading video" });
-  }
-  try {
-    const updatedUser = await user.save();
-    res.status(200).json({
-      success: true,
-      data: updatedUser,
-    });
-  } catch (error) {
-    console.log(error);
-    res.status(500).json({ error: "Error updating user profile" });
   }
 };
 

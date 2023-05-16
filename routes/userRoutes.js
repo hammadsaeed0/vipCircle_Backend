@@ -9,7 +9,7 @@ router.route("/AddPhoneNumber").post(AddPhoneNumber);
 router.route("/AddProfileDetail/:id").post(AddProfileDetail);
 router.route("/WhoIam/:id").post(WhoIam);
 router.route("/uploadImage" , upload.array('avatars')).post(uploadImage);
-router.route("/uploadVideo/:id").post(uploadVideo);
+router.route("/uploadVideo").post(uploadVideo);
 router.route("/Interests/:id").post(Interests);
 router.route("/PersonlDetail/:id").post(PersonlDetail);
 router.route("/Hobbies/:id").post(Hobbies);
