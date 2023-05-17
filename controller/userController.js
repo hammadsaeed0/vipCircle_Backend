@@ -41,11 +41,8 @@ export const AddProfileDetail = catchAsyncError(async (req, res, next) => {
   }
   user.dateOfBirth = dateOfBirth;
   user.name = name;
-  let data = {
-    publicId: public_id,
-    url: url
-  }
-  user.gallery.push(data)
+  // user.gallery = user.gallery || [];
+  user.gallery.push(...public_id)
   try {
     const updatedUser = await user.save();
     res.status(200).json({
