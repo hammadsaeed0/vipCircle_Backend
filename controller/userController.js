@@ -94,6 +94,8 @@ export const uploadVideo = async (req, res, next) => {
     return res.status(400).json({ error: "No video file provided" });
   }
 
+  let responce = []
+
   try {
     const videoFile = req.files.video;
     const result = await cloudinary.v2.uploader.upload(videoFile.tempFilePath, {
@@ -105,7 +107,8 @@ export const uploadVideo = async (req, res, next) => {
       publidId,
       url
     }
-    res.send(data)
+    responce.push(data)
+    res.send(responce)
   } catch (error) {
     return res.status(500).json({ error: "Error uploading video" });
   }
@@ -147,7 +150,7 @@ export const PersonlDetail = catchAsyncError(async (req, res, next) => {
   const { id } = req.params;
   const user = await User.findById(id);
   if (!user) return res.status(404).json({ message: "User not found" });
-  const { height, country, intro } = req.body;
+  const { height, country, intro , video , match} = req.body;
   if (!height) return res.status(404).json({ message: "Please Select Height" });
   if (!country)
     return res.status(404).json({ message: "Please Select Country" });
@@ -160,6 +163,11 @@ export const PersonlDetail = catchAsyncError(async (req, res, next) => {
   user.height = height;
   user.country = country;
   user.intro = intro;
+  user.idealMatch = match;
+  video.forEach((item) => {
+    user.gallery.push(item);
+  });
+
 
   const updatedUser = await user.save();
   res.status(200).json({
