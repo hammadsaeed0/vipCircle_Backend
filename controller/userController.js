@@ -31,7 +31,7 @@ export const AddProfileDetail = catchAsyncError(async (req, res, next) => {
   const { id } = req.params;
   const user = await User.findById(id);
   if (!user) return res.status(404).json({ message: "User not found" });
-  const { name, dateOfBirth } = req.body;
+  const { name, dateOfBirth , public_id , url } = req.body;
   if (!name) {
     return res.status(404).json({ message: "Enter the Name" });
   }
@@ -41,6 +41,11 @@ export const AddProfileDetail = catchAsyncError(async (req, res, next) => {
   }
   user.dateOfBirth = dateOfBirth;
   user.name = name;
+  let data = {
+    publicId: public_id,
+    url: url
+  }
+  user.gallery.push(data)
   try {
     const updatedUser = await user.save();
     res.status(200).json({

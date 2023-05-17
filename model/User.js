@@ -14,9 +14,6 @@ const GalleryItemSchema = new Schema({
     type: String,
     required: true,
   },
-  type : {
-    type: String,
-  }
 });
 
 const userSchema = new Schema({
