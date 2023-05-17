@@ -41,7 +41,7 @@ const userSchema = new Schema({
     type: String,
   },
   gallery: {
-    type: [String],
+    type: Array,
   },
   interests: {
     type: String,
