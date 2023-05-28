@@ -6,7 +6,7 @@ const upload = multer({ dest: 'uploads/' });
 const router = express.Router();
 
 router.route("/AddPhoneNumber").post(AddPhoneNumber);
-router.route("/ShowProfile").post(ShowProfile);
+router.route("/ShowProfile").get(ShowProfile);
 router.route("/AddProfileDetail/:id").post(AddProfileDetail);
 router.route("/WhoIam/:id").post(WhoIam);
 router.route("/uploadImage" , upload.array('avatars')).post(uploadImage);
