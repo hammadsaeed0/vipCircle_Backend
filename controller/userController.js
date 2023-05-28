@@ -255,3 +255,14 @@ export const DeleteProfile = catchAsyncError(async (req, res, next) => {
     message: "User Delete Successfully",
   });
 });
+
+// Show  Profile
+export const ShowProfile = catchAsyncError(async (req, res, next) => {
+  const user = await User.find()
+  if (!user) return res.status(404).json({ message: "User not found" });
+  res.status(200).json({
+    success: true,
+    data: user,
+  });
+});
+
