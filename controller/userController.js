@@ -164,9 +164,12 @@ export const PersonlDetail = catchAsyncError(async (req, res, next) => {
   user.country = country;
   user.intro = intro;
   user.idealMatch = match;
-  video.forEach((item) => {
-    user.gallery.push(item);
-  });
+  if(video){
+    video.forEach((item) => {
+      user.gallery.push(item);
+    });
+  }
+  
 
 
   const updatedUser = await user.save();
