@@ -164,10 +164,12 @@ export const PersonlDetail = catchAsyncError(async (req, res, next) => {
   user.country = country;
   user.intro = intro;
   user.idealMatch = match;
+  if(video){
+ 
   video.forEach((item) => {
     user.gallery.push(item);
   });
-
+ }
 
   const updatedUser = await user.save();
   res.status(200).json({
