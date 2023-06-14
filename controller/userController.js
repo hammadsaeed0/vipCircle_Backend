@@ -72,11 +72,9 @@ export const uploadImage = async (req, res, next) => {
       const result = await cloudinary.v2.uploader.upload(image.tempFilePath);
        const publidId = result.public_id
       const url = result.url
-      const path = image.tempFilePath
       let data = {
         publidId,
         url,
-        path
       }
     //  console.log(data);
     responce.push(data)
