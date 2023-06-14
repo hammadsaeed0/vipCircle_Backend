@@ -85,7 +85,8 @@ export const uploadImage = async (req, res, next) => {
 
   }
     // console.log("-->1",responce);
-    res.json{responce , result}
+//     res.json{responce , result}
+  res.send(result)
 
 };
 // Add User Video
