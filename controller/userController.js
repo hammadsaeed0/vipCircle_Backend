@@ -196,6 +196,7 @@ export const Hobbies = catchAsyncError(async (req, res, next) => {
 export const LikeProfile = catchAsyncError(async (req, res, next) => {
   const { id } = req.params;
   const user = await User.findById(id);
+  console.log(user);
   if (!user) return res.status(404).json({ message: "User not found" });
   const likedUserId = req.body.liked;
   const likedUser = await User.findById(likedUserId);
@@ -207,16 +208,10 @@ export const LikeProfile = catchAsyncError(async (req, res, next) => {
   user.liked.push(likedUserId);
   await user.save();
   if (isMatched) {
-    //   user.isMatched.push(likedUserId);
-    //   console.log(likedUserId);
-    //   likedUser.isMatched.push(id);e
-    //   console.log(id);
-    //   await user.save();
-    //   await likedUser.save();
     return res.status(200).json({
       success: true,
       message: "Match found",
-      data: { match: likedUserId },
+      data: { match: likedUser },
     });
   } else {
     return res.status(200).json({
