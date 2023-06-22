@@ -50,7 +50,7 @@ const userSchema = new Schema({
     type: String,
   },
   height: {
-    type: Number,
+    type: String,
   },
   country: {
     type: String,
