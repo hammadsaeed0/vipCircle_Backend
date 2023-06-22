@@ -31,7 +31,7 @@ export const AddProfileDetail = catchAsyncError(async (req, res, next) => {
   const { id } = req.params;
   const user = await User.findById(id);
   if (!user) return res.status(404).json({ message: "User not found" });
-  const { name, dateOfBirth , public_id , url } = req.body;
+  const { name, dateOfBirth, public_id, url } = req.body;
   if (!name) {
     return res.status(404).json({ message: "Enter the Name" });
   }
@@ -66,27 +66,26 @@ export const uploadImage = async (req, res, next) => {
       images = req.files.avatars;
     }
   }
-  let responce = []
+  let responce = [];
   for (const image of images) {
     try {
       const result = await cloudinary.v2.uploader.upload(image.tempFilePath);
-       const publidId = result.public_id
-      const url = result.url
+      console.log(result);
+      const publidId = result.public_id;
+      const url = result.url;
       let data = {
         publidId,
-        url
-      }
-    //  console.log(data);
-    responce.push(data)
+        url,
+      };
+      //  console.log(data);
+      responce.push(data);
     } catch (error) {
       console.log(error);
       return res.status(500).json({ error: "Error uploading images" });
     }
-
   }
-    // console.log("-->1",responce);
-    res.send(responce)
-
+  // console.log("-->1",responce);
+  res.send(responce);
 };
 // Add User Video
 export const uploadVideo = async (req, res, next) => {
@@ -94,21 +93,21 @@ export const uploadVideo = async (req, res, next) => {
     return res.status(400).json({ error: "No video file provided" });
   }
 
-  let responce = []
+  let responce = [];
 
   try {
     const videoFile = req.files.video;
     const result = await cloudinary.v2.uploader.upload(videoFile.tempFilePath, {
       resource_type: "video",
     });
-    const publidId = result.public_id
-    const url = result.url
+    const publidId = result.public_id;
+    const url = result.url;
     let data = {
       publidId,
-      url
-    }
-    responce.push(data)
-    res.send(responce)
+      url,
+    };
+    responce.push(data);
+    res.send(responce);
   } catch (error) {
     return res.status(500).json({ error: "Error uploading video" });
   }
@@ -150,7 +149,7 @@ export const PersonlDetail = catchAsyncError(async (req, res, next) => {
   const { id } = req.params;
   const user = await User.findById(id);
   if (!user) return res.status(404).json({ message: "User not found" });
-  const { height, country, intro , video , match} = req.body;
+  const { height, country, intro, video, match } = req.body;
   if (!height) return res.status(404).json({ message: "Please Select Height" });
   if (!country)
     return res.status(404).json({ message: "Please Select Country" });
@@ -164,13 +163,11 @@ export const PersonlDetail = catchAsyncError(async (req, res, next) => {
   user.country = country;
   user.intro = intro;
   user.idealMatch = match;
-  if(video){
+  if (video) {
     video.forEach((item) => {
       user.gallery.push(item);
     });
   }
-  
-
 
   const updatedUser = await user.save();
   res.status(200).json({
@@ -261,7 +258,7 @@ export const DeleteProfile = catchAsyncError(async (req, res, next) => {
 
 // Show  Profile
 export const ShowProfile = catchAsyncError(async (req, res, next) => {
-  const user = await User.find()
+  const user = await User.find();
   if (!user) return res.status(404).json({ message: "User not found" });
   res.status(200).json({
     success: true,
@@ -279,4 +276,17 @@ export const ShowSingleProfile = catchAsyncError(async (req, res, next) => {
     data: user,
   });
 });
-
+// Login Profile
+export const login = catchAsyncError(async (req, res, next) => {
+  const { phoneNumber } = req.body;
+  if (!phoneNumber)
+    return next(new ErrorHandler("Please Add your phoneNumber", 409));
+  const existingUser = await User.findOne({ phoneNumber });
+  if (!existingUser)
+    return next(new ErrorHandler("No User Found", 409));
+  
+    res.status(200).json({
+      success:'true',
+      data:existingUser
+    })
+});

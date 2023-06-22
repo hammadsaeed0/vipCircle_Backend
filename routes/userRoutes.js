@@ -1,11 +1,12 @@
 import express from "express";
-import { AddPhoneNumber, ShowProfile,  WhoIam, Interests, PersonlDetail, Hobbies, LikeProfile, LikedProfile, DeleteProfile ,uploadImage , AddProfileDetail , uploadVideo, ShowSingleProfile} from "../controller/userController.js";
+import { AddPhoneNumber, ShowProfile,  WhoIam, Interests, PersonlDetail, Hobbies, LikeProfile, LikedProfile, DeleteProfile ,uploadImage , AddProfileDetail , uploadVideo, ShowSingleProfile, login} from "../controller/userController.js";
 import multer from 'multer';
 const upload = multer({ dest: 'uploads/' });
 
 const router = express.Router();
 
 router.route("/AddPhoneNumber").post(AddPhoneNumber);
+router.route("/login").post(login);
 router.route("/ShowProfile").get(ShowProfile);
 router.route("/ShowSingleProfile/:id").post(ShowSingleProfile);
 router.route("/AddProfileDetail/:id").post(AddProfileDetail);
