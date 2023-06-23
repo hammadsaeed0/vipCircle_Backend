@@ -202,7 +202,7 @@ export const LikeProfile = catchAsyncError(async (req, res, next) => {
   if (!likedUser)
     return res.status(404).json({ message: "Liked user not found" });
   if (user.liked.includes(likedUserId))
-    return res.status(404).json({ message: "User already liked this profile" });
+    return res.status(404).json({success:false , message: "User already liked this profile" });
   const isMatched = likedUser.liked.includes(id);
   user.liked.push(likedUserId);
   await user.save();
