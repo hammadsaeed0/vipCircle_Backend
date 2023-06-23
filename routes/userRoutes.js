@@ -1,5 +1,5 @@
 import express from "express";
-import { AddPhoneNumber, ShowProfile,  WhoIam, Interests, PersonlDetail, Hobbies, LikeProfile, LikedProfile, DeleteProfile ,uploadImage , AddProfileDetail , uploadVideo, ShowSingleProfile, login, userName} from "../controller/userController.js";
+import { AddPhoneNumber, ShowProfile,  WhoIam, Interests, PersonlDetail, Hobbies, LikeProfile, LikedProfile, DeleteProfile ,uploadImage , AddProfileDetail , uploadVideo, ShowSingleProfile, login, userName, CreateChat, GetChat, FindChat, SendMessage, GetMessage} from "../controller/userController.js";
 import multer from 'multer';
 const upload = multer({ dest: 'uploads/' });
 
@@ -20,5 +20,11 @@ router.route("/Hobbies/:id").post(Hobbies);
 router.route("/LikeProfile/:id").post(LikeProfile);
 router.route("/LikedProfile/:id").post(LikedProfile);
 router.route("/DeleteProfile/:id").post(DeleteProfile);
+router.route("/createChat").post(CreateChat);
+router.route("/getChat/:userId").get(GetChat);
+router.route("/find/:firstId/:secondId").post(FindChat);
+router.route("/sendMessage").post(SendMessage);
+router.route("/getMessage/:chatId").post(GetMessage);
+
 
 export default router;

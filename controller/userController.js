@@ -5,6 +5,8 @@ import { sendToken } from "../utils/sendToken.js";
 import cloudinary from "cloudinary";
 import multer from "multer";
 const upload = multer({ dest: "uploads/" });
+import ChatModel from "../model/ChatModel.js";
+import MessageModel from "../model/MessageModel.js";
 
 export const uploadVideos = upload.single("video");
 
@@ -28,8 +30,7 @@ export const AddPhoneNumber = catchAsyncError(async (req, res, next) => {
 // Add User Phone Number
 export const userName = catchAsyncError(async (req, res, next) => {
   const { name } = req.body;
-  if (!name)
-    return next(new ErrorHandler("Please Add your phoneNumber", 409));
+  if (!name) return next(new ErrorHandler("Please Add your phoneNumber", 409));
   const newUser = await User.create({ name });
   sendToken(res, newUser, "User Register", 201);
 });
@@ -210,7 +211,9 @@ export const LikeProfile = catchAsyncError(async (req, res, next) => {
   if (!likedUser)
     return res.status(404).json({ message: "Liked user not found" });
   if (user.liked.includes(likedUserId))
-    return res.status(404).json({success:false , message: "User already liked this profile" });
+    return res
+      .status(404)
+      .json({ success: false, message: "User already liked this profile" });
   const isMatched = likedUser.liked.includes(id);
   user.liked.push(likedUserId);
   await user.save();
@@ -218,9 +221,9 @@ export const LikeProfile = catchAsyncError(async (req, res, next) => {
     return res.status(200).json({
       success: "match",
       message: "Match found",
-      data: { 
+      data: {
         match: likedUser,
-        myprofile: user
+        myprofile: user,
       },
     });
   } else {
@@ -287,11 +290,74 @@ export const login = catchAsyncError(async (req, res, next) => {
   if (!phoneNumber)
     return next(new ErrorHandler("Please Add your phoneNumber", 409));
   const existingUser = await User.findOne({ phoneNumber });
-  if (!existingUser)
-    return next(new ErrorHandler("No User Found", 409));
-  
-    res.status(200).json({
-      success:'true',
-      data:existingUser
-    })
+  if (!existingUser) return next(new ErrorHandler("No User Found", 409));
+
+  res.status(200).json({
+    success: "true",
+    data: existingUser,
+  });
+});
+
+// Create Chat
+export const CreateChat = catchAsyncError(async (req, res, next) => {
+  const newChat = new ChatModel({
+    members: [req.body.senderId, req.body.receiverId],
+  });
+  try {
+    const result = await newChat.save();
+    res.status(200).json(result);
+  } catch (error) {
+    res.status(500).json(error);
+  }
+});
+
+// Get Chat
+export const GetChat = catchAsyncError(async (req, res, next) => {
+  try {
+    const chat = await ChatModel.find({
+      members: { $in: [req.params.userId] },
+    });
+    res.status(200).json(chat);
+  } catch (error) {
+    res.status(500).json(error);
+  }
+});
+
+// Find Chat
+export const FindChat = catchAsyncError(async (req, res, next) => {
+  try {
+    const chat = await ChatModel.findOne({
+      members: { $all: [req.params.firstId, req.params.secondId] },
+    });
+    res.status(200).json(chat);
+  } catch (error) {
+    res.status(500).json(error);
+  }
+});
+
+// Find Chat
+export const SendMessage = catchAsyncError(async (req, res, next) => {
+  const { chatId, senderId, text } = req.body;
+  const message = new MessageModel({
+    chatId,
+    senderId,
+    text,
+  });
+  try {
+    const result = await message.save();
+    res.status(200).json(result);
+  } catch (error) {
+    res.status(500).json(error);
+  }
+});
+
+// Find Chat
+export const GetMessage = catchAsyncError(async (req, res, next) => {
+  const { chatId } = req.params;
+  try {
+    const result = await MessageModel.find({ chatId });
+    res.status(200).json(result);
+  } catch (error) {
+    res.status(500).json(error);
+  }
 });
