@@ -208,7 +208,7 @@ export const LikeProfile = catchAsyncError(async (req, res, next) => {
   await user.save();
   if (isMatched) {
     return res.status(200).json({
-      success: true,
+      success: "match",
       message: "Match found",
       data: { 
         match: likedUser,
