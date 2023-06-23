@@ -25,6 +25,14 @@ export const AddPhoneNumber = catchAsyncError(async (req, res, next) => {
   const newUser = await User.create({ phoneNumber });
   sendToken(res, newUser, "User Register", 201);
 });
+// Add User Phone Number
+export const userName = catchAsyncError(async (req, res, next) => {
+  const { name } = req.body;
+  if (!name)
+    return next(new ErrorHandler("Please Add your phoneNumber", 409));
+  const newUser = await User.create({ name });
+  sendToken(res, newUser, "User Register", 201);
+});
 
 // Add User Basic Profile Data
 export const AddProfileDetail = catchAsyncError(async (req, res, next) => {
