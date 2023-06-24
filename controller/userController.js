@@ -5,8 +5,10 @@ import { sendToken } from "../utils/sendToken.js";
 import cloudinary from "cloudinary";
 import multer from "multer";
 const upload = multer({ dest: "uploads/" });
-import ChatModel from "../model/ChatModel.js";
-import MessageModel from "../model/MessageModel.js";
+// import ChatModel from "../model/ChatModel.js";
+// import MessageModel from "../model/MessageModel.js";
+import chatSchema from "../model/ChatModel.js";
+import mesSchema from "../model/MessageModel.js";
 
 export const uploadVideos = upload.single("video");
 
@@ -298,16 +300,33 @@ export const login = catchAsyncError(async (req, res, next) => {
   });
 });
 
-// Create Chat
+// Create Chat  H
 export const CreateChat = catchAsyncError(async (req, res, next) => {
-  const newChat = new ChatModel({
-    members: [req.body.senderId, req.body.receiverId],
-  });
+  let { person1, person2 } = req.body;
   try {
-    const result = await newChat.save();
-    res.status(200).json(result);
-  } catch (error) {
-    res.status(500).json(error);
+    const old = await chatSchema.findOne({
+      $or: [
+        { person1, person2 },
+        { person1: person2, person2: person1 },
+      ],
+    });
+    if (old != null) {
+      return res.json({
+        status: "error",
+        message: "Chat is already available",
+      });
+    }
+    let chat = await chatSchema.create({
+      person1,
+      person2,
+    });
+    res.json({
+      status: "success",
+      data: chat,
+    });
+  } catch (e) {
+    console.log(e);
+    return res.json({ status: "error", message: "Invalid parameters" });
   }
 });
 
@@ -323,15 +342,25 @@ export const GetChat = catchAsyncError(async (req, res, next) => {
   }
 });
 
-// Find Chat
+// Find Chat H
 export const FindChat = catchAsyncError(async (req, res, next) => {
   try {
-    const chat = await ChatModel.findOne({
-      members: { $all: [req.params.firstId, req.params.secondId] },
+    let { uid } = req.body;
+    // console.log(uid, "aaaaaaaaaaaaaaa");
+    let chats = await chatSchema.find({
+      $or: [{ person1: uid }, { person2: uid }],
     });
-    res.status(200).json(chat);
-  } catch (error) {
-    res.status(500).json(error);
+
+    res.json({
+      status: "success",
+      data: chats,
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(400).json({
+      status: "error",
+      message: "invalid parameters",
+    });
   }
 });
 

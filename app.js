@@ -7,6 +7,8 @@ import router from "./routes/userRoutes.js";
 import ErrorMiddleware from "./middleware/Error.js";
 import fileupload from "express-fileupload";
 import cors from "cors";
+import { User } from "./model/User.js";
+import ChatModel from "./model/ChatModel.js";
 
 connectDB();
 
@@ -29,30 +31,26 @@ app.use(
 
 // Import User Routes
 app.use("/api", router);
-let activeUsers = [];
-const io = new Server(server);
+const io = new Server(server, {
+  cors: {
+      origin: "*"
+  }
+}); -
 io.on("connection", (socket) => {
-  socket.on("new-user-add", (newUserId) => {
-    // if user is not added previously
-    if (!activeUsers.some((user) => user.userId === newUserId)) {
-      activeUsers.push({ userId: newUserId, socketId: socket.id });
-      console.log("New User Connected", activeUsers);
+  socket.on("new-message", async (data) => {
+    try {
+      // console.log(data);
+      let newMessage = await Message.create({ ...data, time: Date.now() });
+      const chatMessages = await Message.find({ chat_id: data.chat_id });
+      // const chatData = await ChatModel.findById(data.chatId)
+      socket.broadcast.emit("new-message", {
+        messages: chatMessages,
+        chatId: data.chat_id,
+        // persons:[chatData.person1, chatData.person2],
+      });
+    } catch (error) {
+      console.log(error);
     }
-    // send all active users to new user
-    io.emit("get-users", activeUsers);
-  });
-  socket.on("disconnect", () => {
-    // remove user from active users
-    activeUsers = activeUsers.filter((user) => user.socketId !== socket.id);
-    console.log("User Disconnected", activeUsers);
-    // send all active users to all users
-    io.emit("get-users", activeUsers);
-  });
-  // send message to a specific user
-  socket.on("send-message", (data) => {
-    // console.log(data);
-    // console.log("Data: ", data)
-      io.emit("recieve-message", data);
   });
 });
 
