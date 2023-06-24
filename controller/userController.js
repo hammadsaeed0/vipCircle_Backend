@@ -346,14 +346,23 @@ export const GetChat = catchAsyncError(async (req, res, next) => {
 export const FindChat = catchAsyncError(async (req, res, next) => {
   try {
     let { uid } = req.body;
-    // console.log(uid, "aaaaaaaaaaaaaaa");
+
     let chats = await chatSchema.find({
       $or: [{ person1: uid }, { person2: uid }],
     });
 
+    const chatsWithData = await Promise.all(chats.map(async (data) => {
+      const findPerson = await User.findById(data.person1);
+      const chatWithPersonData = {
+        chat: data,
+        person1Data: findPerson,
+      };
+      return chatWithPersonData;
+    }));
+
     res.json({
       status: "success",
-      data: chats,
+      data: chatsWithData,
     });
   } catch (err) {
     console.log(err);
