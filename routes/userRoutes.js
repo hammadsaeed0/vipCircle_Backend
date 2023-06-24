@@ -22,7 +22,7 @@ router.route("/LikedProfile/:id").post(LikedProfile);
 router.route("/DeleteProfile/:id").post(DeleteProfile);
 router.route("/createChat").post(CreateChat);
 router.route("/getChat/:userId").get(GetChat);
-router.route("/find/:firstId/:secondId").post(FindChat);
+router.route("/find").post(FindChat);
 router.route("/sendMessage").post(SendMessage);
 router.route("/getMessage/:chatId").post(GetMessage);
 
