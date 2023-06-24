@@ -335,7 +335,7 @@ export const FindChat = catchAsyncError(async (req, res, next) => {
   }
 });
 
-// Find Chat
+// Send Message
 export const SendMessage = catchAsyncError(async (req, res, next) => {
   const { chatId, senderId, text } = req.body;
   const message = new MessageModel({
@@ -351,7 +351,7 @@ export const SendMessage = catchAsyncError(async (req, res, next) => {
   }
 });
 
-// Find Chat
+// Get Message
 export const GetMessage = catchAsyncError(async (req, res, next) => {
   const { chatId } = req.params;
   try {
