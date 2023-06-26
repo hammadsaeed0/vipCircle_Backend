@@ -13,7 +13,6 @@ import ChatModel from "./model/ChatModel.js";
 connectDB();
 
 const app = express();
-const server = http.createServer(app);
 
 // Use Middlewares
 app.use(express.json());
@@ -29,13 +28,17 @@ app.use(
   })
 );
 
+app.use(ErrorMiddleware);
 // Import User Routes
 app.use("/api", router);
+const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
       origin: "*"
   }
-}); -
+});
+
+
 io.on("connection", (socket) => {
   socket.on("new-message", async (data) => {
     try {
@@ -59,4 +62,3 @@ server.listen(APP_PORT, () => {
   console.log(`App is running on port ${APP_PORT}`);
 });
 
-app.use(ErrorMiddleware);
