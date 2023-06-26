@@ -398,7 +398,7 @@ export const SendMessage = catchAsyncError(async (req, res, next) => {
 export const GetMessage = catchAsyncError(async (req, res, next) => {
   const { chatId } = req.params;
   try {
-    const result = await MessageModel.find({ chatId });
+    const result = await mesSchema.find({ chatId });
     res.status(200).json(result);
   } catch (error) {
     res.status(500).json(error);
