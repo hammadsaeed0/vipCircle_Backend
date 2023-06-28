@@ -292,7 +292,13 @@ export const login = catchAsyncError(async (req, res, next) => {
   if (!phoneNumber)
     return next(new ErrorHandler("Please Add your phoneNumber", 409));
   const existingUser = await User.findOne({ phoneNumber });
-  if (!existingUser) return next(new ErrorHandler("No User Found", 409));
+  // if (!existingUser) return next(new ErrorHandler("No User Found", 409));
+  if(!existingUser){
+    res.status(409).json({
+    success: "false",
+    message: "No User Found",
+  });
+  }
 
   res.status(200).json({
     success: "true",
