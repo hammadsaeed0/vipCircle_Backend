@@ -9,6 +9,8 @@ import fileupload from "express-fileupload";
 import cors from "cors";
 import { User } from "./model/User.js";
 import ChatModel from "./model/ChatModel.js";
+import MessageModel from "./model/MessageModel.js";
+
 
 connectDB();
 
@@ -43,13 +45,13 @@ io.on("connection", (socket) => {
   socket.on("new-message", async (data) => {
     try {
       // console.log(data);
-      let newMessage = await Message.create({ ...data, time: Date.now() });
-      const chatMessages = await Message.find({ chat_id: data.chat_id });
-      // const chatData = await ChatModel.findById(data.chatId)
+      let newMessage = await MessageModel.create({ ...data, time: Date.now() });
+      const chatMessages = await MessageModel.find({ chat_id: data.chat_id });
+      const chatData = await ChatModel.findById(data.chatId)
       socket.broadcast.emit("new-message", {
         messages: chatMessages,
         chatId: data.chat_id,
-        // persons:[chatData.person1, chatData.person2],
+        persons:[chatData.person1, chatData.person2],
       });
     } catch (error) {
       console.log(error);
