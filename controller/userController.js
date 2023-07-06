@@ -5,8 +5,6 @@ import { sendToken } from "../utils/sendToken.js";
 import cloudinary from "cloudinary";
 import multer from "multer";
 const upload = multer({ dest: "uploads/" });
-// import ChatModel from "../model/ChatModel.js";
-// import MessageModel from "../model/MessageModel.js";
 import chatSchema from "../model/ChatModel.js";
 import mesSchema from "../model/MessageModel.js";
 
@@ -29,11 +27,17 @@ export const AddPhoneNumber = catchAsyncError(async (req, res, next) => {
   const newUser = await User.create({ phoneNumber });
   sendToken(res, newUser, "User Register", 201);
 });
+
 // Add User Phone Number
-export const userName = catchAsyncError(async (req, res, next) => {
-  const { name } = req.body;
-  if (!name) return next(new ErrorHandler("Please Add your phoneNumber", 409));
-  const newUser = await User.create({ name });
+export const AddEmail = catchAsyncError(async (req, res, next) => {
+  const { email } = req.body;
+  const existingUser = await User.findOne({ email });
+  console.log(existingUser);
+  if (existingUser) {
+    return res.status(400).json({ message: "Email already exists" });
+  }
+
+  const newUser = await User.create({ email });
   sendToken(res, newUser, "User Register", 201);
 });
 
@@ -293,11 +297,11 @@ export const login = catchAsyncError(async (req, res, next) => {
     return next(new ErrorHandler("Please Add your phoneNumber", 409));
   const existingUser = await User.findOne({ phoneNumber });
   // if (!existingUser) return next(new ErrorHandler("No User Found", 409));
-  if(!existingUser){
+  if (!existingUser) {
     res.status(409).json({
-    success: "false",
-    message: "No User Found",
-  });
+      success: "false",
+      message: "No User Found",
+    });
   }
 
   res.status(200).json({
@@ -360,16 +364,18 @@ export const FindChat = catchAsyncError(async (req, res, next) => {
     // console.log(chats[0].person2);
     // const findPerson2 = await User.findById(chats[0].person2);
 
-    const chatsWithData = await Promise.all(chats.map(async (data) => {
-      const findPerson = await User.findById(data.person1);
-      const findPerson1 = await User.findById(data.person2);
-      const chatWithPersonData = {
-        chat: data,
-        person1Data: findPerson,
-        person2Data: findPerson1,
-      };
-      return chatWithPersonData;
-    }));
+    const chatsWithData = await Promise.all(
+      chats.map(async (data) => {
+        const findPerson = await User.findById(data.person1);
+        const findPerson1 = await User.findById(data.person2);
+        const chatWithPersonData = {
+          chat: data,
+          person1Data: findPerson,
+          person2Data: findPerson1,
+        };
+        return chatWithPersonData;
+      })
+    );
 
     res.json({
       status: "success",
