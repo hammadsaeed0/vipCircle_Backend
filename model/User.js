@@ -19,7 +19,10 @@ const GalleryItemSchema = new Schema({
 const userSchema = new Schema({
   name: {
     type: String,
-    // required: [true, "Please Enter Your Name"],
+  },
+  email: {
+    type: String,
+    unique: true
   },
   profileImage: {
     public_id: {
@@ -28,10 +31,6 @@ const userSchema = new Schema({
     url: {
       type: String,
     },
-  },
-  isVerified: {
-    type: Boolean,
-    default: false,
   },
   createdAt: {
     type: Date,
@@ -70,26 +69,27 @@ const userSchema = new Schema({
   phoneNumber: {
     type: Number,
   },
-  liked: [{
-    type: mongoose.Schema.ObjectId,
-    ref: 'User',
-  }],
+  liked: [
+    {
+      type: mongoose.Schema.ObjectId,
+      ref: "User",
+    },
+  ],
   isMatched: {
     type: mongoose.Schema.ObjectId,
-    ref: 'User',
+    ref: "User",
   },
   verified: {
     type: Boolean,
     default: false,
   },
-});
 
+});
 
 userSchema.methods.getJWTToken = function () {
   return jwt.sign({ _id: this._id }, TOKEN_KEY, {
     expiresIn: "15d",
   });
 };
-
 
 export const User = mongoose.model("User", userSchema);
