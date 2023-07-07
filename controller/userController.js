@@ -34,7 +34,7 @@ export const AddEmail = catchAsyncError(async (req, res, next) => {
   const existingUser = await User.findOne({ email });
   console.log(existingUser);
   if (existingUser) {
-    return res.status(400).json({ success: "false",  message: "Email already exists" });
+    return res.status(400).json({ success: false ,  message: "Email already exists" });
   }
 
   const newUser = await User.create({ email });
