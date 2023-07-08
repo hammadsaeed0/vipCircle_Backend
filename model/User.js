@@ -39,6 +39,14 @@ const userSchema = new Schema({
   dateOfBirth: {
     type: String,
   },
+  longitude: {
+    type: String,
+    default: 0
+  },
+  latitude: {
+    type: String,
+    default: 0
+  },
   gallery: {
     type: Array,
   },
