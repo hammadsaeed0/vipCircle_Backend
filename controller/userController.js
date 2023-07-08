@@ -34,7 +34,9 @@ export const AddEmail = catchAsyncError(async (req, res, next) => {
   const existingUser = await User.findOne({ email });
   console.log(existingUser);
   if (existingUser) {
-    return res.status(400).json({ success: false ,  message: "Email already exists" });
+    return res
+      .status(400)
+      .json({ success: false, message: "Email already exists" });
   }
 
   const newUser = await User.create({ email });
@@ -241,50 +243,34 @@ export const LikeProfile = catchAsyncError(async (req, res, next) => {
   }
 });
 
-// All Liked Profile
-// export const LikedProfile = catchAsyncError(async (req, res, next) => {
-//   const { id } = req.params;
-//   const user = await User.findById(id);
-//   if (!user) return res.status(404).json({ message: "User not found" });
-//   if (user.liked.length === 0) {
-//     return res.status(404).json({ message: "No likes found" });
-//   }
-//   const likedIds = user.liked;
-//   const profiles = await Promise.all(likedIds.map((id) => User.findById(id)));
-//   res.status(200).json({
-//     success: true,
-//     data: profiles,
-//   });
-// });
 export const LikedProfile = catchAsyncError(async (req, res, next) => {
   const { id } = req.params;
   const user = await User.findById(id);
 
   if (!user) {
-    return res.status(404).json({success: false ,  message: "User not found" });
+    return res.status(404).json({ success: false, message: "User not found" });
   }
 
-  const currentUser = req.user; // Assuming the current user is available in req.user
-  const currentUserLiked = currentUser.liked;
+  const currentUserLiked = user.liked;
 
   if (currentUserLiked.length === 0) {
-    return res.status(404).json({success: false , message: "No likes found" });
+    return res.status(404).json({ success: false, message: "No likes found" });
   }
 
   const likedProfiles = await Promise.all(
     currentUserLiked.map((likedId) => User.findById(likedId))
   );
 
-  const filteredProfiles = likedProfiles.filter(
-    (profile) => profile.liked.includes(currentUser._id)
-  );
+  const filteredProfiles = likedProfiles.filter((profile) => {
+    // Filter out profiles with the same ObjectId as the current user
+    return !profile._id.equals(user._id);
+  });
 
   res.status(200).json({
     success: true,
     data: filteredProfiles,
   });
 });
-
 
 // Delete  Profile
 export const DeleteProfile = catchAsyncError(async (req, res, next) => {
