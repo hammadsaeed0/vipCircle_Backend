@@ -242,20 +242,49 @@ export const LikeProfile = catchAsyncError(async (req, res, next) => {
 });
 
 // All Liked Profile
+// export const LikedProfile = catchAsyncError(async (req, res, next) => {
+//   const { id } = req.params;
+//   const user = await User.findById(id);
+//   if (!user) return res.status(404).json({ message: "User not found" });
+//   if (user.liked.length === 0) {
+//     return res.status(404).json({ message: "No likes found" });
+//   }
+//   const likedIds = user.liked;
+//   const profiles = await Promise.all(likedIds.map((id) => User.findById(id)));
+//   res.status(200).json({
+//     success: true,
+//     data: profiles,
+//   });
+// });
 export const LikedProfile = catchAsyncError(async (req, res, next) => {
   const { id } = req.params;
   const user = await User.findById(id);
-  if (!user) return res.status(404).json({ message: "User not found" });
-  if (user.liked.length === 0) {
+
+  if (!user) {
+    return res.status(404).json({ message: "User not found" });
+  }
+
+  const currentUser = req.user; // Assuming the current user is available in req.user
+  const currentUserLiked = currentUser.liked;
+
+  if (currentUserLiked.length === 0) {
     return res.status(404).json({ message: "No likes found" });
   }
-  const likedIds = user.liked;
-  const profiles = await Promise.all(likedIds.map((id) => User.findById(id)));
+
+  const likedProfiles = await Promise.all(
+    currentUserLiked.map((likedId) => User.findById(likedId))
+  );
+
+  const filteredProfiles = likedProfiles.filter(
+    (profile) => profile.liked.includes(currentUser._id)
+  );
+
   res.status(200).json({
     success: true,
-    data: profiles,
+    data: filteredProfiles,
   });
 });
+
 
 // Delete  Profile
 export const DeleteProfile = catchAsyncError(async (req, res, next) => {
