@@ -261,14 +261,14 @@ export const LikedProfile = catchAsyncError(async (req, res, next) => {
   const user = await User.findById(id);
 
   if (!user) {
-    return res.status(404).json({ message: "User not found" });
+    return res.status(404).json({success: false ,  message: "User not found" });
   }
 
   const currentUser = req.user; // Assuming the current user is available in req.user
   const currentUserLiked = currentUser.liked;
 
   if (currentUserLiked.length === 0) {
-    return res.status(404).json({ message: "No likes found" });
+    return res.status(404).json({success: false , message: "No likes found" });
   }
 
   const likedProfiles = await Promise.all(
