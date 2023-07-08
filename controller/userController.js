@@ -431,3 +431,20 @@ export const GetMessage = catchAsyncError(async (req, res, next) => {
     res.status(500).json(error);
   }
 });
+
+// Add Live Location Cordinates
+
+export const AddLiveLocation = catchAsyncError(async (req, res, next) => {
+  const { id } = req.params;
+  const { longitude, latitude } = req.body;
+  const existingUser = await User.findById(id);
+  if (!existingUser) return next(new ErrorHandler("No User Found", 409));
+  existingUser.longitude = longitude;
+  existingUser.latitude = latitude;
+  const addLocation = await existingUser.save();
+  res.status(200).json({
+    success: true,
+    data: addLocation,
+  });
+
+});

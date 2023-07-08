@@ -20,6 +20,7 @@ import {
   SendMessage,
   GetMessage,
   AddEmail,
+  AddLiveLocation,
 } from "../controller/userController.js";
 import multer from "multer";
 const upload = multer({ dest: "uploads/" });
@@ -46,5 +47,7 @@ router.route("/getChat/:userId").get(GetChat);
 router.route("/find").post(FindChat);
 router.route("/sendMessage").post(SendMessage);
 router.route("/getMessage/:chatId").post(GetMessage);
+router.route("/addLiveLocation/:id").post(AddLiveLocation);
+
 
 export default router;
