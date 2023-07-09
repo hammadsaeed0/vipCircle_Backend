@@ -287,13 +287,50 @@ export const DeleteProfile = catchAsyncError(async (req, res, next) => {
 
 // Show  Profile
 export const ShowProfile = catchAsyncError(async (req, res, next) => {
-  const user = await User.find();
-  if (!user) return res.status(404).json({ message: "User not found" });
-  res.status(200).json({
-    success: true,
-    data: user,
+  const { id } = req.params;
+  const currentUser = await User.findById(id);
+
+  if (!currentUser) {
+    return res.status(404).json({success: false ,  message: "Please Login" });
+  }
+
+  const users = await User.find({ _id: { $ne: currentUser._id } });
+
+  if (!users) {
+    return res.status(404).json({success: false,  message: "User not found" });
+  }
+
+  // Calculate distances between current user and other users
+  users.forEach(user => {
+    user.distance = calculateDistance(currentUser.latitude, currentUser.longitude, user.latitude, user.longitude);
+    user.distance = Math.round(user.distance); // Round the distance to the nearest whole number
   });
+
+  // Save the updated users
+  await Promise.all(users.map(user => user.save()));
+
+  return res.status(200).json({success: true , data : users});
 });
+
+
+// Function to calculate distance using Haversine formula
+function calculateDistance(lat1, lon1, lat2, lon2) {
+  const R = 6371; // Radius of the Earth in kilometers
+  const dLat = toRad(lat2 - lat1);
+  const dLon = toRad(lon2 - lon1);
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  const distance = R * c;
+  return distance;
+}
+
+// Helper function to convert degrees to radians
+function toRad(degrees) {
+  return degrees * (Math.PI / 180);
+}
+
 
 // Show Single Profile
 export const ShowSingleProfile = catchAsyncError(async (req, res, next) => {
@@ -446,5 +483,4 @@ export const AddLiveLocation = catchAsyncError(async (req, res, next) => {
     success: true,
     data: addLocation,
   });
-
 });

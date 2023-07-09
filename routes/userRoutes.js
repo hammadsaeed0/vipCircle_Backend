@@ -30,7 +30,7 @@ const router = express.Router();
 router.route("/AddPhoneNumber").post(AddPhoneNumber);
 router.route("/email").post(AddEmail);
 router.route("/login").post(login);
-router.route("/ShowProfile").get(ShowProfile);
+router.route("/ShowProfile/:id").post(ShowProfile);
 router.route("/ShowSingleProfile/:id").post(ShowSingleProfile);
 router.route("/AddProfileDetail/:id").post(AddProfileDetail);
 router.route("/WhoIam/:id").post(WhoIam);
