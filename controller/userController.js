@@ -87,7 +87,7 @@ export const uploadImage = async (req, res, next) => {
   for (const image of images) {
     try {
       const result = await cloudinary.v2.uploader.upload(image.tempFilePath);
-      console.log(result);
+      // console.log("--->",result);
       const publidId = result.public_id;
       const url = result.url;
       let data = {
@@ -97,7 +97,7 @@ export const uploadImage = async (req, res, next) => {
       //  console.log(data);
       responce.push(data);
     } catch (error) {
-      console.log(error);
+      // console.log(error);
       return res.status(500).json({ error: "Error uploading images" });
     }
   }
