@@ -42,6 +42,19 @@ export const AddEmail = catchAsyncError(async (req, res, next) => {
   const newUser = await User.create({ email });
   sendToken(res, newUser, "User Register", 201);
 });
+// Add User Email
+export const LoginWithEmail = catchAsyncError(async (req, res, next) => {
+  const { email } = req.body;
+  const existingUser = await User.findOne({ email });
+  if (existingUser) {
+    return res
+      .status(400)
+      .json({ success: true, message: "Email already exists" });
+  }
+  res
+  .status(400)
+  .json({ success: false, message: "No User Found" });
+});
 
 // Add User Basic Profile Data
 export const AddProfileDetail = catchAsyncError(async (req, res, next) => {

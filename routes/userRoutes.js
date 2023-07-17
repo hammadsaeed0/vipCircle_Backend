@@ -21,6 +21,7 @@ import {
   GetMessage,
   AddEmail,
   AddLiveLocation,
+  LoginWithEmail,
 } from "../controller/userController.js";
 import multer from "multer";
 const upload = multer({ dest: "uploads/" });
@@ -29,6 +30,7 @@ const router = express.Router();
 
 router.route("/AddPhoneNumber").post(AddPhoneNumber);
 router.route("/email").post(AddEmail);
+router.route("/LoginWithEmail").post(LoginWithEmail);
 router.route("/login").post(login);
 router.route("/ShowProfile/:id").post(ShowProfile);
 router.route("/ShowSingleProfile/:id").post(ShowSingleProfile);
