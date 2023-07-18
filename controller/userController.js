@@ -49,7 +49,8 @@ export const LoginWithEmail = catchAsyncError(async (req, res, next) => {
   if (existingUser) {
     return res
       .status(400)
-      .json({ success: true, message: "Email already exists" });
+      .json({ success: true, message: "Email already exists", success: "true",
+      data: existingUser });
   }
   res
   .status(400)
