@@ -49,12 +49,14 @@ export const LoginWithEmail = catchAsyncError(async (req, res, next) => {
   if (existingUser) {
     return res
       .status(400)
-      .json({ success: true, message: "Email already exists", success: "true",
-      data: existingUser });
+      .json({
+        success: true,
+        message: "Email already exists",
+        success: "true",
+        data: existingUser,
+      });
   }
-  res
-  .status(400)
-  .json({ success: false, message: "No User Found" });
+  res.status(400).json({ success: false, message: "No User Found" });
 });
 
 // Add User Basic Profile Data
@@ -264,17 +266,22 @@ export const LikedProfile = catchAsyncError(async (req, res, next) => {
   if (!user) {
     return res.status(404).json({ success: false, message: "User not found" });
   }
+
   const currentUserLiked = user.liked;
+
   if (currentUserLiked.length === 0) {
     return res.status(404).json({ success: false, message: "No likes found" });
   }
+
   const likedProfiles = await Promise.all(
     currentUserLiked.map((likedId) => User.findById(likedId))
   );
+
   const filteredProfiles = likedProfiles.filter((profile) => {
-    // Filter out profiles with the same ObjectId as the current user
-    return !profile._id.equals(user._id);
+    // Check if the profile exists and has a valid _id property
+    return profile && profile._id && !profile._id.equals(user._id);
   });
+
   res.status(200).json({
     success: true,
     data: filteredProfiles,
@@ -294,33 +301,108 @@ export const DeleteProfile = catchAsyncError(async (req, res, next) => {
   });
 });
 
+// Add Update Personal Detail
+export const UpdateProfile = catchAsyncError(async (req, res, next) => {
+  const { id } = req.params;
+  const user = await User.findById(id);
+  if (!user)
+    return res.status(404).json({ success: false, message: "User not found" });
+  const { height, country, intro, match, name, interest, work, education } =
+    req.body;
+
+  user.height = height || user.height;
+  user.country = country || user.country;
+  user.intro = intro || user.intro;
+  user.name = name || user.name;
+  user.work = work || user.work;
+  user.interests = interest || user.interests;
+  user.match = match || user.match;
+  user.education = education || user.education;
+
+  const updatedUser = await user.save();
+  res.status(200).json({
+    success: true,
+    data: updatedUser,
+  });
+});
+
+// Add Update Images
+export const UpdateImage = async (req, res, next) => {
+  const { id } = req.params;
+  const user = await User.findById(id);
+  if (!user)
+    return res.status(404).json({ success: false, message: "User not found" });
+  let images = [];
+  if (req.files && req.files.avatars) {
+    if (!Array.isArray(req.files.avatars)) {
+      images.push(req.files.avatars);
+    } else {
+      images = req.files.avatars;
+    }
+  }
+  let responce = [];
+  for (const image of images) {
+    try {
+      const result = await cloudinary.v2.uploader.upload(image.tempFilePath);
+      const publidId = result.public_id;
+      const url = result.url;
+      let data = {
+        publidId,
+        url,
+      };
+      //  console.log(data);
+      responce.push(data);
+    } catch (error) {
+      console.log(error);
+      return res
+        .status(500)
+        .json({ success: false, error: "Error uploading images" });
+    }
+  }
+  // console.log("-->1",responce[0].publidId);
+  // console.log("-->1",responce[0].url);
+  // console.log(responce[0]);
+  const data = responce[0];
+  user.gallery.unshift(data);
+  const updatedUser = await user.save();
+  res.status(200).json({
+    success: true,
+    data: updatedUser,
+    message: "Image Update Successfully",
+  });
+};
+
 // Show  Profile
 export const ShowProfile = catchAsyncError(async (req, res, next) => {
   const { id } = req.params;
   const currentUser = await User.findById(id);
 
   if (!currentUser) {
-    return res.status(404).json({success: false ,  message: "Please Login" });
+    return res.status(404).json({ success: false, message: "Please Login" });
   }
 
   const users = await User.find({ _id: { $ne: currentUser._id } });
 
   if (!users) {
-    return res.status(404).json({success: false,  message: "User not found" });
+    return res.status(404).json({ success: false, message: "User not found" });
   }
 
   // Calculate distances between current user and other users
-  users.forEach(user => {
-    user.distance = calculateDistance(currentUser.latitude, currentUser.longitude, user.latitude, user.longitude);
+  users.forEach((user) => {
+    user.distance = calculateDistance(
+      currentUser.latitude,
+      currentUser.longitude,
+      user.latitude,
+      user.longitude
+    );
     user.distance = Math.round(user.distance); // Round the distance to the nearest whole number
   });
 
   // Save the updated users
-  await Promise.all(users.map(user => user.save()));
+  await Promise.all(users.map((user) => user.save()));
 
-  return res.status(200).json({success: true , data : users});
+  return res.status(200).json({ success: true, data: users });
 });
-
 
 // Function to calculate distance using Haversine formula
 function calculateDistance(lat1, lon1, lat2, lon2) {
@@ -329,7 +411,10 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
   const dLon = toRad(lon2 - lon1);
   const a =
     Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    Math.cos(toRad(lat1)) *
+      Math.cos(toRad(lat2)) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   const distance = R * c;
   return distance;
@@ -339,7 +424,6 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
 function toRad(degrees) {
   return degrees * (Math.PI / 180);
 }
-
 
 // Show Single Profile
 export const ShowSingleProfile = catchAsyncError(async (req, res, next) => {

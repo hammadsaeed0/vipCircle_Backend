@@ -22,6 +22,8 @@ import {
   AddEmail,
   AddLiveLocation,
   LoginWithEmail,
+  UpdateImage,
+  UpdateProfile,
 } from "../controller/userController.js";
 import multer from "multer";
 const upload = multer({ dest: "uploads/" });
@@ -36,7 +38,9 @@ router.route("/ShowProfile/:id").post(ShowProfile);
 router.route("/ShowSingleProfile/:id").post(ShowSingleProfile);
 router.route("/AddProfileDetail/:id").post(AddProfileDetail);
 router.route("/WhoIam/:id").post(WhoIam);
+router.route("/UpdateProfile/:id").post(UpdateProfile);
 router.route("/uploadImage", upload.array("avatars")).post(uploadImage);
+router.route("/UpdateImage/:id", upload.array("avatars")).post(UpdateImage);
 router.route("/uploadVideo").post(uploadVideo);
 router.route("/Interests/:id").post(Interests);
 router.route("/PersonlDetail/:id").post(PersonlDetail);
