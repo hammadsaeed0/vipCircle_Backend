@@ -379,8 +379,8 @@ export const LikedProfile = catchAsyncError(async (req, res, next) => {
   );
 
   const filteredProfiles = likedProfiles.filter((profile) => {
-    // Filter out profiles with the same ObjectId as the current user
-    return !profile._id.equals(user._id);
+    // Check if the profile exists and has a valid _id property
+    return profile && profile._id && !profile._id.equals(user._id);
   });
 
   res.status(200).json({
