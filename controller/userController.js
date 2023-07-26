@@ -7,6 +7,10 @@ import multer from "multer";
 const upload = multer({ dest: "uploads/" });
 import chatSchema from "../model/ChatModel.js";
 import mesSchema from "../model/MessageModel.js";
+import Jimp from 'jimp';
+import fs from "fs";
+
+
 
 export const uploadVideos = upload.single("video");
 
@@ -49,12 +53,14 @@ export const LoginWithEmail = catchAsyncError(async (req, res, next) => {
   if (existingUser) {
     return res
       .status(400)
-      .json({ success: true, message: "Email already exists", success: "true",
-      data: existingUser });
+      .json({
+        success: true, message: "Email already exists", success: "true",
+        data: existingUser
+      });
   }
   res
-  .status(400)
-  .json({ success: false, message: "No User Found" });
+    .status(400)
+    .json({ success: false, message: "No User Found" });
 });
 
 // Add User Basic Profile Data
@@ -87,6 +93,7 @@ export const AddProfileDetail = catchAsyncError(async (req, res, next) => {
     res.status(500).json({ error: "Error updating user profile" });
   }
 });
+
 // Add User Images
 export const uploadImage = async (req, res, next) => {
   let images = [];
@@ -97,27 +104,52 @@ export const uploadImage = async (req, res, next) => {
       images = req.files.avatars;
     }
   }
-  let responce = [];
+
+  let response = [];
+
   for (const image of images) {
     try {
-      const result = await cloudinary.v2.uploader.upload(image.tempFilePath);
-      // console.log("--->",result);
-      const publidId = result.public_id;
+      // Read the image using Jimp
+      const jimpImage = await Jimp.read(image.tempFilePath);
+
+      // Apply watermark using Jimp
+      const watermark = await Jimp.read('https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEiMhnI5QS01TysIUHrtUdglhMhHq71f98YbYsc45pUOUPghdYRE0p7671PrwTvCcfxeAk4sZ7-MnHvaCK3xR9GF0tvzf_kix3kDlfrCweXjxomef3NjWyZrYem4ecOszALvtA8UHgW7OERApRdj4-sj0WJsEkaG2v-8rXpqHF_2pDLRzU8lNXAeVjxH0fM/s320/hut.png');
+
+      // Calculate the size of the watermark
+      const watermarkWidth = jimpImage.bitmap.width / 3; // Adjust the size of the watermark here
+      const watermarkHeight = (watermark.bitmap.height * watermarkWidth) / watermark.bitmap.width;
+      watermark.resize(watermarkWidth, watermarkHeight);
+
+      const X = (jimpImage.bitmap.width - watermark.bitmap.width) / 2;
+      const Y = (jimpImage.bitmap.height - watermark.bitmap.height) / 2;
+      jimpImage.composite(watermark, X, Y, { mode: Jimp.BLEND_SCREEN, opacitySource: 0.9 });
+
+      // Save the image with watermark to a temporary file
+      const tempFilePath = `temp_${Date.now()}.jpg`;
+      await jimpImage.writeAsync(tempFilePath);
+
+      // Upload the image with watermark to Cloudinary
+      const result = await cloudinary.v2.uploader.upload(tempFilePath);
+
+      // Remove the temporary file
+      await fs.unlinkSync(tempFilePath);
+
+      const publicId = result.public_id;
       const url = result.url;
       let data = {
-        publidId,
+        publicId,
         url,
       };
-      //  console.log(data);
-      responce.push(data);
+      response.push(data);
     } catch (error) {
-      // console.log(error);
-      return res.status(500).json({ error: "Error uploading images" });
+      console.error('Error uploading image:', error);
+      return res.status(500).json({ error: 'Error uploading images' });
     }
   }
-  // console.log("-->1",responce);
-  res.send(responce);
+
+  res.json({ success: true, data: response });
 };
+
 // Add User Video
 export const uploadVideo = async (req, res, next) => {
   if (!req.files || !req.files.video) {
@@ -305,13 +337,13 @@ export const ShowProfile = catchAsyncError(async (req, res, next) => {
   const currentUser = await User.findById(id);
 
   if (!currentUser) {
-    return res.status(404).json({success: false ,  message: "Please Login" });
+    return res.status(404).json({ success: false, message: "Please Login" });
   }
 
   const users = await User.find({ _id: { $ne: currentUser._id } });
 
   if (!users) {
-    return res.status(404).json({success: false,  message: "User not found" });
+    return res.status(404).json({ success: false, message: "User not found" });
   }
 
   // Calculate distances between current user and other users
@@ -323,7 +355,7 @@ export const ShowProfile = catchAsyncError(async (req, res, next) => {
   // Save the updated users
   await Promise.all(users.map(user => user.save()));
 
-  return res.status(200).json({success: true , data : users});
+  return res.status(200).json({ success: true, data: users });
 });
 
 
