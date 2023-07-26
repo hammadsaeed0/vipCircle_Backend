@@ -264,22 +264,17 @@ export const LikedProfile = catchAsyncError(async (req, res, next) => {
   if (!user) {
     return res.status(404).json({ success: false, message: "User not found" });
   }
-
   const currentUserLiked = user.liked;
-
   if (currentUserLiked.length === 0) {
     return res.status(404).json({ success: false, message: "No likes found" });
   }
-
   const likedProfiles = await Promise.all(
     currentUserLiked.map((likedId) => User.findById(likedId))
   );
-
   const filteredProfiles = likedProfiles.filter((profile) => {
     // Filter out profiles with the same ObjectId as the current user
     return !profile._id.equals(user._id);
   });
-
   res.status(200).json({
     success: true,
     data: filteredProfiles,
