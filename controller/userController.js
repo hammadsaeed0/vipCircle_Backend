@@ -7,10 +7,8 @@ import multer from "multer";
 const upload = multer({ dest: "uploads/" });
 import chatSchema from "../model/ChatModel.js";
 import mesSchema from "../model/MessageModel.js";
-import Jimp from 'jimp';
+import Jimp from "jimp";
 import fs from "fs";
-
-
 
 export const uploadVideos = upload.single("video");
 
@@ -51,16 +49,14 @@ export const LoginWithEmail = catchAsyncError(async (req, res, next) => {
   const { email } = req.body;
   const existingUser = await User.findOne({ email });
   if (existingUser) {
-    return res
-      .status(400)
-      .json({
-        success: true, message: "Email already exists", success: "true",
-        data: existingUser
-      });
+    return res.status(400).json({
+      success: true,
+      message: "Email already exists",
+      success: "true",
+      data: existingUser,
+    });
   }
-  res
-    .status(400)
-    .json({ success: false, message: "No User Found" });
+  res.status(400).json({ success: false, message: "No User Found" });
 });
 
 // Add User Basic Profile Data
@@ -113,16 +109,22 @@ export const uploadImage = async (req, res, next) => {
       const jimpImage = await Jimp.read(image.tempFilePath);
 
       // Apply watermark using Jimp
-      const watermark = await Jimp.read('https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEiMhnI5QS01TysIUHrtUdglhMhHq71f98YbYsc45pUOUPghdYRE0p7671PrwTvCcfxeAk4sZ7-MnHvaCK3xR9GF0tvzf_kix3kDlfrCweXjxomef3NjWyZrYem4ecOszALvtA8UHgW7OERApRdj4-sj0WJsEkaG2v-8rXpqHF_2pDLRzU8lNXAeVjxH0fM/s320/hut.png');
+      const watermark = await Jimp.read(
+        "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEiMhnI5QS01TysIUHrtUdglhMhHq71f98YbYsc45pUOUPghdYRE0p7671PrwTvCcfxeAk4sZ7-MnHvaCK3xR9GF0tvzf_kix3kDlfrCweXjxomef3NjWyZrYem4ecOszALvtA8UHgW7OERApRdj4-sj0WJsEkaG2v-8rXpqHF_2pDLRzU8lNXAeVjxH0fM/s320/hut.png"
+      );
 
       // Calculate the size of the watermark
       const watermarkWidth = jimpImage.bitmap.width / 3; // Adjust the size of the watermark here
-      const watermarkHeight = (watermark.bitmap.height * watermarkWidth) / watermark.bitmap.width;
+      const watermarkHeight =
+        (watermark.bitmap.height * watermarkWidth) / watermark.bitmap.width;
       watermark.resize(watermarkWidth, watermarkHeight);
 
       const X = (jimpImage.bitmap.width - watermark.bitmap.width) / 2;
       const Y = (jimpImage.bitmap.height - watermark.bitmap.height) / 2;
-      jimpImage.composite(watermark, X, Y, { mode: Jimp.BLEND_SCREEN, opacitySource: 0.9 });
+      jimpImage.composite(watermark, X, Y, {
+        mode: Jimp.BLEND_SCREEN,
+        opacitySource: 0.9,
+      });
 
       // Save the image with watermark to a temporary file
       const tempFilePath = `temp_${Date.now()}.jpg`;
@@ -142,12 +144,56 @@ export const uploadImage = async (req, res, next) => {
       };
       response.push(data);
     } catch (error) {
-      console.error('Error uploading image:', error);
-      return res.status(500).json({ error: 'Error uploading images' });
+      console.error("Error uploading image:", error);
+      return res.status(500).json({ error: "Error uploading images" });
     }
   }
 
   res.json({ success: true, data: response });
+};
+
+// Add Update Images
+export const UpdateImage = async (req, res, next) => {
+  const { id } = req.params;
+  const user = await User.findById(id);
+  if (!user) return res.status(404).json({ success: false,  message: "User not found" });
+  let images = [];
+  if (req.files && req.files.avatars) {
+    if (!Array.isArray(req.files.avatars)) {
+      images.push(req.files.avatars);
+    } else {
+      images = req.files.avatars;
+    }
+  }
+  let responce = [];
+  for (const image of images) {
+    try {
+      const result = await cloudinary.v2.uploader.upload(image.tempFilePath);
+      const publidId = result.public_id;
+      const url = result.url;
+      let data = {
+        publidId,
+        url,
+      };
+      //  console.log(data);
+      responce.push(data);
+    } catch (error) {
+      console.log(error);
+      return res.status(500).json({success: false,  error: "Error uploading images" });
+    }
+  }
+  // console.log("-->1",responce[0].publidId);
+  // console.log("-->1",responce[0].url);
+  // console.log(responce[0]);
+  const data = responce[0]
+  user.gallery.unshift(data)
+  const updatedUser = await user.save();
+  res.status(200).json({
+    success: true,
+    data: updatedUser,
+    message: "Image Update Successfully"
+
+  });
 };
 
 // Add User Video
@@ -231,6 +277,31 @@ export const PersonlDetail = catchAsyncError(async (req, res, next) => {
       user.gallery.push(item);
     });
   }
+
+  const updatedUser = await user.save();
+  res.status(200).json({
+    success: true,
+    data: updatedUser,
+  });
+});
+
+// Add User Personal Detail
+export const UpdateProfile = catchAsyncError(async (req, res, next) => {
+  const { id } = req.params;
+  const user = await User.findById(id);
+  if (!user)
+    return res.status(404).json({ success: false, message: "User not found" });
+  const { height, country, intro, match, name, interest, work, education } =
+    req.body;
+
+  user.height = height || user.height;
+  user.country = country || user.country;
+  user.intro = intro || user.intro;
+  user.name = name || user.name;
+  user.work = work || user.work;
+  user.interests = interest || user.interests;
+  user.match = match || user.match;
+  user.education = education || user.education;
 
   const updatedUser = await user.save();
   res.status(200).json({
@@ -347,17 +418,21 @@ export const ShowProfile = catchAsyncError(async (req, res, next) => {
   }
 
   // Calculate distances between current user and other users
-  users.forEach(user => {
-    user.distance = calculateDistance(currentUser.latitude, currentUser.longitude, user.latitude, user.longitude);
+  users.forEach((user) => {
+    user.distance = calculateDistance(
+      currentUser.latitude,
+      currentUser.longitude,
+      user.latitude,
+      user.longitude
+    );
     user.distance = Math.round(user.distance); // Round the distance to the nearest whole number
   });
 
   // Save the updated users
-  await Promise.all(users.map(user => user.save()));
+  await Promise.all(users.map((user) => user.save()));
 
   return res.status(200).json({ success: true, data: users });
 });
-
 
 // Function to calculate distance using Haversine formula
 function calculateDistance(lat1, lon1, lat2, lon2) {
@@ -366,7 +441,10 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
   const dLon = toRad(lon2 - lon1);
   const a =
     Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    Math.cos(toRad(lat1)) *
+      Math.cos(toRad(lat2)) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   const distance = R * c;
   return distance;
@@ -376,7 +454,6 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
 function toRad(degrees) {
   return degrees * (Math.PI / 180);
 }
-
 
 // Show Single Profile
 export const ShowSingleProfile = catchAsyncError(async (req, res, next) => {

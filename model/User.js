@@ -57,6 +57,12 @@ const userSchema = new Schema({
   interests: {
     type: String,
   },
+  education: {
+    type: String,
+  },
+  work: {
+    type: String,
+  },
   gender: {
     type: String,
   },
