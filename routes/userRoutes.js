@@ -24,6 +24,7 @@ import {
   LoginWithEmail,
   UpdateImage,
   UpdateProfile,
+  DislikeProfile,
 } from "../controller/userController.js";
 import multer from "multer";
 const upload = multer({ dest: "uploads/" });
@@ -46,6 +47,7 @@ router.route("/Interests/:id").post(Interests);
 router.route("/PersonlDetail/:id").post(PersonlDetail);
 router.route("/Hobbies/:id").post(Hobbies);
 router.route("/LikeProfile/:id").post(LikeProfile);
+router.route("/DislikeProfile/:id").post(DislikeProfile);
 router.route("/LikedProfile/:id").post(LikedProfile);
 router.route("/DeleteProfile/:id").post(DeleteProfile);
 router.route("/createChat").post(CreateChat);

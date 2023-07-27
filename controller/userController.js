@@ -257,6 +257,37 @@ export const LikeProfile = catchAsyncError(async (req, res, next) => {
   }
 });
 
+// Dislike Profile
+export const DislikeProfile = catchAsyncError(async (req, res, next) => {
+  const { id } = req.params;
+  const user = await User.findById(id);
+  if (!user) return res.status(404).json({ message: "User not found" });
+
+  const dislikedUserId = req.body.disliked;
+  const dislikedUser = await User.findById(dislikedUserId);
+  if (!dislikedUser)
+    return res.status(404).json({ message: "Disliked user not found" });
+
+  // Check if the disliked user ID exists in the list of users who liked the current user
+  if (!dislikedUser.liked.includes(id))
+    return res
+      .status(404)
+      .json({ success: false, message: "User has not liked this profile" });
+
+  // Remove the current user's ID from the list of users who liked the disliked user
+  dislikedUser.liked = dislikedUser.liked.filter((likedId) => likedId.toString() !== id);
+
+  await dislikedUser.save();
+
+  return res.status(200).json({
+    success: true,
+    message: "User disliked successfully",
+    data: { dislikedUser: dislikedUserId },
+  });
+});
+
+
+
 // Who Like Me
 export const LikedProfile = catchAsyncError(async (req, res, next) => {
   const { id } = req.params;
@@ -440,9 +471,6 @@ if (maxDistance) {
 
   return res.status(200).json({ success: true, data: users });
 });
-
-
-
 
 // Function to calculate distance using Haversine formula
 function calculateDistance(lat1, lon1, lat2, lon2) {
