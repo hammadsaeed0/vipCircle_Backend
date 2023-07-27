@@ -366,7 +366,7 @@ export const UpdateImage = async (req, res, next) => {
   });
 };
 
-// Show  Profile
+// Show Profile
 export const ShowProfile = catchAsyncError(async (req, res, next) => {
   const { id } = req.params;
   const { interests, country, age, maxDistance } = req.query;
@@ -379,19 +379,19 @@ export const ShowProfile = catchAsyncError(async (req, res, next) => {
 
   let users = await User.find({ _id: { $ne: currentUser._id } });
 
-  // Filter by interests (case-insensitive search)
+  // Filter by interests (case-sensitive exact match)
   if (interests) {
-    const regexInterests = new RegExp(interests, "i");
+    const queryInterests = interests.toLowerCase();
     users = users.filter((user) => {
-      return regexInterests.test(user.interests);
+      return user.interests && user.interests.toLowerCase() === queryInterests;
     });
   }
 
   // Filter by country (case-insensitive search)
   if (country) {
-    const regexCountry = new RegExp(country, "i");
+    const queryCountry = country.toLowerCase();
     users = users.filter((user) => {
-      return regexCountry.test(user.country);
+      return user.country && user.country.toLowerCase() === queryCountry;
     });
   }
 
@@ -400,29 +400,24 @@ export const ShowProfile = catchAsyncError(async (req, res, next) => {
     const currentYear = new Date().getFullYear();
     const ageFilter = parseInt(age);
     users = users.filter((user) => {
-      // Assuming dateOfBirth is in the format "YYMMDD"
-      const birthYear = parseInt(user.dateOfBirth.substring(0, 2));
-      const birthMonth = parseInt(user.dateOfBirth.substring(2, 4));
-      const birthDay = parseInt(user.dateOfBirth.substring(4, 6));
-
-      const userBirthDate = new Date(
-        currentYear - birthYear,
-        birthMonth - 1,
-        birthDay
-      );
-      const userAge = currentYear - userBirthDate.getFullYear();
-
-      return userAge === ageFilter;
+      if (user.dateOfBirth) {
+        // Assuming dateOfBirth is in the format "MM/DD/YYYY"
+        const birthYear = parseInt(user.dateOfBirth.split('/')[2]);
+        const userAge = currentYear - birthYear;
+        return userAge >= ageFilter;
+      }
+      return false;
     });
   }
 
-  // Filter by maxDistance
-  if (maxDistance) {
-    const maxDistanceFilter = parseInt(maxDistance);
-    users = users.filter((user) => {
-      return user.distance <= maxDistanceFilter;
-    });
-  }
+// Filter by maxDistance
+if (maxDistance) {
+  const maxDistanceFilter = parseInt(maxDistance);
+  users = users.filter((user) => {
+    return user.distance !== undefined && user.distance < maxDistanceFilter;
+  });
+}
+
 
   // If no matching users found for the provided filters, show all users
   if (users.length === 0) {
@@ -445,6 +440,9 @@ export const ShowProfile = catchAsyncError(async (req, res, next) => {
 
   return res.status(200).json({ success: true, data: users });
 });
+
+
+
 
 // Function to calculate distance using Haversine formula
 function calculateDistance(lat1, lon1, lat2, lon2) {
