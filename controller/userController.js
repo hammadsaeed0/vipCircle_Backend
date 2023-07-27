@@ -47,14 +47,12 @@ export const LoginWithEmail = catchAsyncError(async (req, res, next) => {
   const { email } = req.body;
   const existingUser = await User.findOne({ email });
   if (existingUser) {
-    return res
-      .status(400)
-      .json({
-        success: true,
-        message: "Email already exists",
-        success: "true",
-        data: existingUser,
-      });
+    return res.status(400).json({
+      success: true,
+      message: "Email already exists",
+      success: "true",
+      data: existingUser,
+    });
   }
   res.status(400).json({ success: false, message: "No User Found" });
 });
@@ -268,24 +266,21 @@ export const LikedProfile = catchAsyncError(async (req, res, next) => {
     return res.status(404).json({ success: false, message: "User not found" });
   }
 
-  // Get profiles of users who have liked the current user (users in the likedBy array)
-  const likedByProfiles = await User.find({ _id: { $in: user.likedBy } });
-
-  if (likedByProfiles.length === 0) {
+  // Find profiles of users who have liked the current user (users in the liked array)
+  const likedProfiles = await User.find({ liked: user._id });
+  if (likedProfiles.length === 0) {
     return res.status(404).json({ success: false, message: "No likes found" });
   }
 
-  const filteredProfiles = likedByProfiles.filter((profile) => {
+  const filteredProfiles = likedProfiles.filter((profile) => {
     // Check if the profile exists and has a valid _id property
-    return profile && profile._id;
+    return profile && profile._id && !profile._id.equals(user._id);
   });
-
   res.status(200).json({
     success: true,
     data: filteredProfiles,
   });
 });
-
 
 // Delete  Profile
 export const DeleteProfile = catchAsyncError(async (req, res, next) => {
@@ -410,7 +405,11 @@ export const ShowProfile = catchAsyncError(async (req, res, next) => {
       const birthMonth = parseInt(user.dateOfBirth.substring(2, 4));
       const birthDay = parseInt(user.dateOfBirth.substring(4, 6));
 
-      const userBirthDate = new Date(currentYear - birthYear, birthMonth - 1, birthDay);
+      const userBirthDate = new Date(
+        currentYear - birthYear,
+        birthMonth - 1,
+        birthDay
+      );
       const userAge = currentYear - userBirthDate.getFullYear();
 
       return userAge === ageFilter;
@@ -446,7 +445,6 @@ export const ShowProfile = catchAsyncError(async (req, res, next) => {
 
   return res.status(200).json({ success: true, data: users });
 });
-
 
 // Function to calculate distance using Haversine formula
 function calculateDistance(lat1, lon1, lat2, lon2) {
