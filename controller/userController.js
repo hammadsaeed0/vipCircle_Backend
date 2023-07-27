@@ -259,6 +259,7 @@ export const LikeProfile = catchAsyncError(async (req, res, next) => {
   }
 });
 
+// Who Like Me
 export const LikedProfile = catchAsyncError(async (req, res, next) => {
   const { id } = req.params;
   const user = await User.findById(id);
@@ -267,19 +268,16 @@ export const LikedProfile = catchAsyncError(async (req, res, next) => {
     return res.status(404).json({ success: false, message: "User not found" });
   }
 
-  const currentUserLiked = user.liked;
+  // Get profiles of users who have liked the current user (users in the likedBy array)
+  const likedByProfiles = await User.find({ _id: { $in: user.likedBy } });
 
-  if (currentUserLiked.length === 0) {
+  if (likedByProfiles.length === 0) {
     return res.status(404).json({ success: false, message: "No likes found" });
   }
 
-  const likedProfiles = await Promise.all(
-    currentUserLiked.map((likedId) => User.findById(likedId))
-  );
-
-  const filteredProfiles = likedProfiles.filter((profile) => {
+  const filteredProfiles = likedByProfiles.filter((profile) => {
     // Check if the profile exists and has a valid _id property
-    return profile && profile._id && !profile._id.equals(user._id);
+    return profile && profile._id;
   });
 
   res.status(200).json({
@@ -287,6 +285,7 @@ export const LikedProfile = catchAsyncError(async (req, res, next) => {
     data: filteredProfiles,
   });
 });
+
 
 // Delete  Profile
 export const DeleteProfile = catchAsyncError(async (req, res, next) => {
@@ -447,9 +446,6 @@ export const ShowProfile = catchAsyncError(async (req, res, next) => {
 
   return res.status(200).json({ success: true, data: users });
 });
-
-
-
 
 
 // Function to calculate distance using Haversine formula
