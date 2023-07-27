@@ -375,19 +375,63 @@ export const UpdateImage = async (req, res, next) => {
 // Show  Profile
 export const ShowProfile = catchAsyncError(async (req, res, next) => {
   const { id } = req.params;
+  const { interests, country, age, maxDistance } = req.query;
+
   const currentUser = await User.findById(id);
 
   if (!currentUser) {
     return res.status(404).json({ success: false, message: "Please Login" });
   }
 
-  const users = await User.find({ _id: { $ne: currentUser._id } });
+  let users = await User.find({ _id: { $ne: currentUser._id } });
 
-  if (!users) {
-    return res.status(404).json({ success: false, message: "User not found" });
+  // Filter by interests (case-insensitive search)
+  if (interests) {
+    const regexInterests = new RegExp(interests, "i");
+    users = users.filter((user) => {
+      return regexInterests.test(user.interests);
+    });
   }
 
-  // Calculate distances between current user and other users
+  // Filter by country (case-insensitive search)
+  if (country) {
+    const regexCountry = new RegExp(country, "i");
+    users = users.filter((user) => {
+      return regexCountry.test(user.country);
+    });
+  }
+
+  // Filter by age
+  if (age) {
+    const currentYear = new Date().getFullYear();
+    const ageFilter = parseInt(age);
+    users = users.filter((user) => {
+      // Assuming dateOfBirth is in the format "YYMMDD"
+      const birthYear = parseInt(user.dateOfBirth.substring(0, 2));
+      const birthMonth = parseInt(user.dateOfBirth.substring(2, 4));
+      const birthDay = parseInt(user.dateOfBirth.substring(4, 6));
+
+      const userBirthDate = new Date(currentYear - birthYear, birthMonth - 1, birthDay);
+      const userAge = currentYear - userBirthDate.getFullYear();
+
+      return userAge === ageFilter;
+    });
+  }
+
+  // Filter by maxDistance
+  if (maxDistance) {
+    const maxDistanceFilter = parseInt(maxDistance);
+    users = users.filter((user) => {
+      return user.distance <= maxDistanceFilter;
+    });
+  }
+
+  // If no matching users found for the provided filters, show all users
+  if (users.length === 0) {
+    users = await User.find({ _id: { $ne: currentUser._id } });
+  }
+
+  // Calculate distances for the remaining users
   users.forEach((user) => {
     user.distance = calculateDistance(
       currentUser.latitude,
@@ -403,6 +447,10 @@ export const ShowProfile = catchAsyncError(async (req, res, next) => {
 
   return res.status(200).json({ success: true, data: users });
 });
+
+
+
+
 
 // Function to calculate distance using Haversine formula
 function calculateDistance(lat1, lon1, lat2, lon2) {
