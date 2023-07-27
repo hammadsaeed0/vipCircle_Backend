@@ -310,7 +310,7 @@ export const UpdateProfile = catchAsyncError(async (req, res, next) => {
   user.name = name || user.name;
   user.work = work || user.work;
   user.interests = interest || user.interests;
-  user.match = match || user.match;
+  user.match = match || user.idealMatch;
   user.education = education || user.education;
 
   const updatedUser = await user.save();
