@@ -60,6 +60,9 @@ const userSchema = new Schema({
   gender: {
     type: String,
   },
+  age: {
+    type: String
+  },
   height: {
     type: String,
   },

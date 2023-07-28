@@ -426,15 +426,16 @@ export const ShowProfile = catchAsyncError(async (req, res, next) => {
     });
   }
 
-  // Filter by age
   if (age) {
     const currentYear = new Date().getFullYear();
     const ageFilter = parseInt(age);
     users = users.filter((user) => {
       if (user.dateOfBirth) {
         // Assuming dateOfBirth is in the format "MM/DD/YYYY"
-        const birthYear = parseInt(user.dateOfBirth.split('/')[2]);
-        const userAge = currentYear - birthYear;
+        const [month, day, year] = user.dateOfBirth.split('/');
+        const birthDate = new Date(`${year}-${month}-${day}`);
+        const userAge = currentYear - birthDate.getFullYear();
+        user.age = userAge; // Add age property to the user object
         return userAge >= ageFilter;
       }
       return false;
