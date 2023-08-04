@@ -49,7 +49,7 @@ io.on("connection", (socket) => {
       const chatMessages = await MessageModel.find({ chat_id: data.chat_id });
       const chatData = await ChatModel.findById(data.chatId)
       socket.broadcast.emit("new-message", {
-        messages: chatMessages,
+        messages: data,
         chatId: data,
         persons:[chatData.person1, chatData.person2],
       });
